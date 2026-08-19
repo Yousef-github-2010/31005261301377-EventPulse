@@ -32,7 +32,7 @@ const createEvent = asyncHandler(async (req, res) => {
 });
 
 const getAllEvents = asyncHandler(async (req, res) => {
-  let {
+  const {
     search,
     city,
     category,
@@ -40,7 +40,8 @@ const getAllEvents = asyncHandler(async (req, res) => {
     endDate,
     page,
     limit,
-    sort,
+    sortBy,
+    order,
   } = req.query;
 
   const filter = {};
@@ -85,44 +86,49 @@ const getAllEvents = asyncHandler(async (req, res) => {
     }
   }
 
-  page = Number(page) || 1;
-  limit = Number(limit) || 10;
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const skip = (pageNum - 1) * limitNum;
 
-  const skip = (page - 1) * limit;
+  const allowedSortFields = ["date", "registrations"];
 
-  let query = Event.find(filter).populate("category");
+  const sortField = allowedSortFields.includes(sortBy)
+    ? sortBy
+    : "date";
 
-  switch (sort) {
-    case "date":
-      query = query.sort({ date: 1 });
-      break;
+  const sortDirection = order === "desc" ? -1 : 1;
 
-    case "-date":
-      query = query.sort({ date: -1 });
-      break;
+  const sort = {
+    [sortField]: sortDirection,
+  };
 
-    default:
-      query = query.sort({ createdAt: -1 });
-  }
+  const [data, total] = await Promise.all([
+    Event.find(filter)
+      .populate("category")
+      .populate("organizer")
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
 
-  const events = await query
-    .skip(skip)
-    .limit(limit)
-    .lean();
+    Event.countDocuments(filter),
+  ]);
 
-  const totalEvents = await Event.countDocuments(filter);
+  const totalPages = Math.ceil(total / limitNum);
 
   sendResponse(res, 200, {
-    page,
-    totalPages: Math.ceil(totalEvents / limit),
-    totalEvents,
-    data: events,
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages,
+    data,
   });
 });
 
 const getEventById = asyncHandler(async (req, res) => {
   const event = await Event.findById(req.params.id)
     .populate("category")
+    .populate("organizer")
     .lean();
 
   if (!event) {
@@ -142,7 +148,9 @@ const updateEvent = asyncHandler(async (req, res) => {
       new: true,
       runValidators: true,
     }
-  ).populate("category");
+  )
+    .populate("category")
+    .populate("organizer");
 
   if (!event) {
     throw new AppError("Event not found", 404);

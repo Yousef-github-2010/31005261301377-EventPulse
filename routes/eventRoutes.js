@@ -1,26 +1,17 @@
-const express = require("express");
+const router = require("express").Router();
 
-const { 
-    createEvent,
-    getAllEvents, 
-    getEventById, 
-    updateEvent,
-    deleteEvent
+const {
+  createEvent,
+  getAllEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
 } = require("../controllers/eventController");
 
 const {
   requireAuth,
   requireRole,
 } = require("../middleware/authMiddleware");
-
-const validateRequest = require("../middleware/validateRequest");
-
-const {
-  createEventValidator,
-  updateEventValidator,
-} = require("../validators");
-
-const router = express.Router();
 
 router.get("/", getAllEvents);
 
@@ -30,19 +21,16 @@ router.post(
   "/",
   requireAuth,
   requireRole("admin"),
-  createEventValidator,
-  validateRequest,
   createEvent
 );
 
-router.put(
+router.patch(
   "/:id",
   requireAuth,
   requireRole("admin"),
-  updateEventValidator,
-  validateRequest,
   updateEvent
 );
+
 router.delete(
   "/:id",
   requireAuth,
