@@ -1,4 +1,4 @@
-const express = require("express");
+const router = require("express").Router();
 
 const {
   registerForEvent,
@@ -10,32 +10,10 @@ const {
   requireAuth,
 } = require("../middleware/authMiddleware");
 
-const validateRequest = require("../middleware/validateRequest");
+router.post("/", requireAuth, registerForEvent);
 
-const {
-  registerEventValidator,
-} = require("../validators");
+router.get("/my", requireAuth, getMyRegistrations);
 
-const router = express.Router();
-
-router.post(
-  "/",
-  requireAuth,
-  registerEventValidator,
-  validateRequest,
-  registerForEvent
-);
-
-router.get(
-  "/my",
-  requireAuth,
-  getMyRegistrations
-);
-
-router.delete(
-  "/:id",
-  requireAuth,
-  cancelRegistration
-);
+router.delete("/:id", requireAuth, cancelRegistration);
 
 module.exports = router;
