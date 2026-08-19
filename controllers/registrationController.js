@@ -7,7 +7,10 @@ const sendResponse = require("../utils/sendResponse");
 
 const registerForEvent = asyncHandler(async (req, res) => {
   if (req.user.role !== "attendee") {
-    throw new AppError("Only attendees can register for events.", 403);
+    throw new AppError(
+      "Only attendees can register for events.",
+      403
+    );
   }
 
   const { eventId } = req.body;
@@ -19,7 +22,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
   }
 
   const existingRegistration = await Registration.findOne({
-    user: req.user.id,
+    user: req.user.userId,
     event: eventId,
   });
 
@@ -39,7 +42,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
   }
 
   const registration = await Registration.create({
-    user: req.user.id,
+    user: req.user.userId,
     event: eventId,
   });
 
@@ -51,10 +54,10 @@ const registerForEvent = asyncHandler(async (req, res) => {
 
 const getMyRegistrations = asyncHandler(async (req, res) => {
   const registrations = await Registration.find({
-  user: req.user.id,
-})
-  .populate("event")
-  .lean();
+    user: req.user.userId,
+  })
+    .populate("event")
+    .lean();
 
   sendResponse(res, 200, {
     count: registrations.length,
@@ -69,7 +72,7 @@ const cancelRegistration = asyncHandler(async (req, res) => {
     throw new AppError("Registration not found.", 404);
   }
 
-  if (registration.user.toString() !== req.user.id) {
+  if (registration.user.toString() !== req.user.userId) {
     throw new AppError(
       "You can only cancel your own registration.",
       403

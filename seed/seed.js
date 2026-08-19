@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
 const connectDB = require("../config/db");
 
@@ -111,9 +111,9 @@ const seedDatabase = async () => {
     });
 
     await Message.create({
-      event: events[0]._id,
-      sender: admin._id,
-      text: "Welcome to the Node.js Workshop!",
+    event: events[0]._id,
+    sender: admin._id,
+    text: "Welcome to the Node.js Workshop!",
     });
 
     console.log("Registration and message created");

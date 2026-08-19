@@ -1,19 +1,28 @@
 const Event = require("../models/Event");
-
 const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const sendResponse = require("../utils/sendResponse");
 
 const createEvent = asyncHandler(async (req, res) => {
-  const { title, description, date, city, capacity, category } = req.body;
+  const {
+    title,
+    description,
+    date,
+    city,
+    venue,
+    capacity,
+    category,
+  } = req.body;
 
   const event = await Event.create({
     title,
     description,
     date,
     city,
+    venue,
     capacity,
     category,
+    organizer: req.user.id,
   });
 
   sendResponse(res, 201, {
@@ -61,20 +70,20 @@ const getAllEvents = asyncHandler(async (req, res) => {
   }
 
   if (category) {
-  filter.category = category;
-}
-
-if (startDate || endDate) {
-  filter.date = {};
-
-  if (startDate) {
-    filter.date.$gte = new Date(startDate);
+    filter.category = category;
   }
 
-  if (endDate) {
-    filter.date.$lte = new Date(endDate);
+  if (startDate || endDate) {
+    filter.date = {};
+
+    if (startDate) {
+      filter.date.$gte = new Date(startDate);
+    }
+
+    if (endDate) {
+      filter.date.$lte = new Date(endDate);
+    }
   }
-}
 
   page = Number(page) || 1;
   limit = Number(limit) || 10;
@@ -84,16 +93,16 @@ if (startDate || endDate) {
   let query = Event.find(filter).populate("category");
 
   switch (sort) {
-  case "date":
-    query = query.sort({ date: 1 });
-    break;
+    case "date":
+      query = query.sort({ date: 1 });
+      break;
 
-  case "-date":
-    query = query.sort({ date: -1 });
-    break;
+    case "-date":
+      query = query.sort({ date: -1 });
+      break;
 
-  default:
-    query = query.sort({ createdAt: -1 });
+    default:
+      query = query.sort({ createdAt: -1 });
   }
 
   const events = await query
@@ -113,8 +122,8 @@ if (startDate || endDate) {
 
 const getEventById = asyncHandler(async (req, res) => {
   const event = await Event.findById(req.params.id)
-  .populate("category")
-  .lean();
+    .populate("category")
+    .lean();
 
   if (!event) {
     throw new AppError("Event not found", 404);

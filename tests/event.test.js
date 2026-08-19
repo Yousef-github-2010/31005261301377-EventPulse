@@ -20,6 +20,8 @@ describe("Events API", () => {
         password: "Admin123",
       });
 
+    console.log("LOGIN RESPONSE:", loginResponse.body);
+
     token = loginResponse.body.token;
 
     const category = await Category.findOne();
@@ -39,6 +41,7 @@ describe("Events API", () => {
         description: "Event created for testing",
         date: "2026-12-01",
         city: "Cairo",
+        venue: "Jest Test Venue",
         capacity: 50,
         category: categoryId,
       });
