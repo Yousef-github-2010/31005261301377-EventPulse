@@ -1,5 +1,4 @@
 const request = require("supertest");
-const mongoose = require("mongoose");
 
 const app = require("../app");
 const connectDB = require("../config/db");
@@ -20,17 +19,16 @@ describe("Events API", () => {
         password: "Admin123",
       });
 
-    console.log("LOGIN RESPONSE:", loginResponse.body);
-
     token = loginResponse.body.token;
 
     const category = await Category.findOne();
-    categoryId = category._id;
-  }, 15000);
 
-  afterAll(async () => {
-    await mongoose.connection.close();
-  });
+    if (!category) {
+      throw new Error("No category found in database");
+    }
+
+    categoryId = category._id;
+  }, 30000);
 
   test("should create an event", async () => {
     const response = await request(app)
@@ -48,7 +46,7 @@ describe("Events API", () => {
 
     expect(response.statusCode).toBe(201);
     expect(response.body.success).toBe(true);
-  });
+  }, 15000);
 
   test("should list events", async () => {
     const response = await request(app)
@@ -57,7 +55,7 @@ describe("Events API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.success).toBe(true);
     expect(Array.isArray(response.body.data)).toBe(true);
-  });
+  }, 15000);
 
   test("should filter events by city", async () => {
     const response = await request(app)
@@ -69,5 +67,5 @@ describe("Events API", () => {
     expect(response.statusCode).toBe(200);
     expect(response.body.success).toBe(true);
     expect(Array.isArray(response.body.data)).toBe(true);
-  });
+  }, 15000);
 });

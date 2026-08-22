@@ -1,6 +1,8 @@
 const express = require("express");
 
-const { getEventMessages } = require("../controllers/messageController");
+const {
+  getEventMessages,
+} = require("../controllers/messageController");
 
 const { requireAuth } = require("../middleware/authMiddleware");
 

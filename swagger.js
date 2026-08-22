@@ -272,7 +272,7 @@ const swaggerDocument = {
         },
       },
 
-      put: {
+      patch: {
         tags: ["Events"],
         summary: "Update event",
         security: [{ bearerAuth: [] }],
@@ -449,6 +449,71 @@ const swaggerDocument = {
           },
           404: {
             description: "Registration not found",
+          },
+        },
+      },
+    },
+
+    "/api/announcements": {
+      post: {
+        tags: ["Announcements"],
+        summary: "Create an event announcement",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["eventId", "text"],
+                properties: {
+                  eventId: {
+                    type: "string",
+                    example: "66a123456789",
+                  },
+                  text: {
+                    type: "string",
+                    example: "The workshop will start at 10 AM.",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Announcement sent successfully",
+          },
+          401: {
+            description: "Authentication required",
+          },
+          403: {
+            description: "Admin access required",
+          },
+        },
+      },
+    },
+
+    "/api/announcements/{eventId}": {
+      get: {
+        tags: ["Announcements"],
+        summary: "Get event announcement history",
+        parameters: [
+          {
+            name: "eventId",
+            in: "path",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Announcements returned successfully",
+          },
+          404: {
+            description: "Event not found",
           },
         },
       },

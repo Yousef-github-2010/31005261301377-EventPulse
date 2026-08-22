@@ -15,10 +15,10 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const registrationRoutes = require("./routes/registrationRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 const { swaggerUi, swaggerDocument } = require("./swagger");
 
-const Message = require("./models/Message");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -32,6 +32,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/announcements", announcementRoutes);
 app.use("/health", healthRoutes);
 
 app.use(
@@ -77,50 +78,18 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(
-    "User connected:",
-    socket.id,
-    socket.user.role
-  );
+  console.log("User connected:", socket.id);
 
-  socket.on("joinEvent", (eventId) => {
+  socket.on("join-event", (eventId) => {
     socket.join(`event:${eventId}`);
   });
-
-  socket.on(
-    "sendAnnouncement",
-    async ({ eventId, message }) => {
-      try {
-        if (socket.user.role !== "admin") {
-          return socket.emit("error", {
-            message: "Only admins can send announcements.",
-          });
-        }
-
-        const newMessage = await Message.create({
-          event: eventId,
-          sender: socket.user.userId,
-          message,
-        });
-
-        io.to(`event:${eventId}`).emit("announcement", {
-          eventId,
-          message: newMessage.message,
-          sender: newMessage.sender,
-          createdAt: newMessage.createdAt,
-        });
-      } catch (error) {
-        socket.emit("error", {
-          message: "Failed to send announcement.",
-        });
-      }
-    }
-  );
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
+
+app.set("io", io);
 
 app.use(errorMiddleware);
 
