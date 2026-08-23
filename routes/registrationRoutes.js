@@ -6,11 +6,18 @@ const {
   cancelRegistration,
 } = require("../controllers/registrationController");
 
-const {
-  requireAuth,
-} = require("../middleware/authMiddleware");
+const { requireAuth, requireRole } = require("../middleware/authMiddleware");
+const validateRequest = require("../middleware/validateRequest");
+const { registerEventValidator } = require("../validators");
 
-router.post("/", requireAuth, registerForEvent);
+router.post(
+  "/",
+  requireAuth,
+  requireRole("attendee"),
+  registerEventValidator,
+  validateRequest,
+  registerForEvent
+);
 
 router.get("/my", requireAuth, getMyRegistrations);
 

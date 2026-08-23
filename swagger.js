@@ -11,7 +11,7 @@ const swaggerDocument = {
 
   servers: [
     {
-      url: "http://localhost:3000",
+      url: process.env.API_BASE_URL || "http://localhost:3000",
     },
   ],
 
@@ -20,6 +20,7 @@ const swaggerDocument = {
     { name: "Events" },
     { name: "Categories" },
     { name: "Registrations" },
+    { name: "Announcements" },
     { name: "Messages" },
     { name: "Health" },
   ],
@@ -169,11 +170,21 @@ const swaggerDocument = {
             schema: { type: "integer", minimum: 1 },
           },
           {
-            name: "sort",
+            name: "sortBy",
             in: "query",
             schema: {
               type: "string",
-              example: "date",
+              enum: ["date"],
+              default: "date",
+            },
+          },
+          {
+            name: "order",
+            in: "query",
+            schema: {
+              type: "string",
+              enum: ["asc", "desc"],
+              default: "asc",
             },
           },
         ],
@@ -374,9 +385,9 @@ const swaggerDocument = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["eventId"],
+                required: ["event"],
                 properties: {
-                  eventId: {
+                  event: {
                     type: "string",
                     example: "66a123456789",
                   },

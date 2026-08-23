@@ -1,10 +1,19 @@
+require("dotenv").config();
+
 const { io } = require("socket.io-client");
 
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhODk4MzhhNjQyYmMxYTJmZWRhMzQ0MCIsInJvbGUiOiJhdHRlbmRlZSIsImlhdCI6MTc4NzM5NzgzOCwiZXhwIjoxNzg4MDAyNjM4fQ.e08zYXcfGwzE_qxSc1aw6UU6CUOPEkfgc3oY8f4eVns";
+const token = process.env.ATTENDEE_TOKEN;
+const eventId = process.env.EVENT_ID;
+const socketUrl = process.env.SOCKET_URL || "http://localhost:3000";
 
-const eventId = "6a89838b642bc1a2feda3446";
+if (!token || !eventId) {
+  console.error(
+    "Missing ATTENDEE_TOKEN or EVENT_ID in your .env file."
+  );
+  process.exit(1);
+}
 
-const socket = io("http://localhost:3000", {
+const socket = io(socketUrl, {
   auth: {
     token,
   },
@@ -13,9 +22,14 @@ const socket = io("http://localhost:3000", {
 socket.on("connect", () => {
   console.log("Connected to Socket.io:", socket.id);
 
-  socket.emit("join-event", eventId);
+  socket.emit("join-event", eventId, (response) => {
+    if (!response?.success) {
+      console.error("Failed to join event:", response?.message);
+      return;
+    }
 
-  console.log("Joined event:", eventId);
+    console.log("Joined event:", response.eventId);
+  });
 });
 
 socket.on("announcement", (data) => {

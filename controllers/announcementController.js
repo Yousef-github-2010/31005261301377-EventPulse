@@ -1,49 +1,58 @@
 const Message = require("../models/Message");
+const Event = require("../models/Event");
 
-const createAnnouncement = async (req, res, next) => {
-  try {
-    const { eventId, text } = req.body;
+const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
+const sendResponse = require("../utils/sendResponse");
 
-    const message = await Message.create({
-      event: eventId,
-      sender: req.user.id,
-      text,
-    });
+const createAnnouncement = asyncHandler(async (req, res) => {
+  const { eventId, text } = req.body;
 
-    const io = req.app.get("io");
+  const event = await Event.findById(eventId);
 
+  if (!event) {
+    throw new AppError("Event not found", 404);
+  }
+
+  const message = await Message.create({
+    event: eventId,
+    sender: req.user.id,
+    text,
+  });
+
+  const io = req.app.get("io");
+
+  if (io) {
     io.to(`event:${eventId}`).emit("announcement", {
       eventId,
       message,
       createdAt: message.createdAt,
     });
-
-    res.status(201).json({
-      success: true,
-      message: "Announcement sent successfully",
-      data: message,
-    });
-  } catch (error) {
-    next(error);
   }
-};
 
-const getEventAnnouncements = async (req, res, next) => {
-  try {
-    const messages = await Message.find({
-      event: req.params.eventId,
-    })
-      .populate("sender", "name email")
-      .sort({ createdAt: 1 });
+  sendResponse(res, 201, {
+    message: "Announcement sent successfully",
+    data: message,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      data: messages,
-    });
-  } catch (error) {
-    next(error);
+const getEventAnnouncements = asyncHandler(async (req, res) => {
+  const event = await Event.findById(req.params.eventId).select("_id");
+
+  if (!event) {
+    throw new AppError("Event not found", 404);
   }
-};
+
+  const messages = await Message.find({
+    event: req.params.eventId,
+  })
+    .populate("sender", "name email")
+    .sort({ createdAt: 1 });
+
+  sendResponse(res, 200, {
+    data: messages,
+  });
+});
 
 module.exports = {
   createAnnouncement,

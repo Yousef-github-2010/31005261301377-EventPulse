@@ -5,44 +5,13 @@ const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const sendResponse = require("../utils/sendResponse");
 
-const createAnnouncement = asyncHandler(async (req, res) => {
-  const { eventId, text } = req.body;
-
-  const event = await Event.findById(eventId);
+const getEventMessages = asyncHandler(async (req, res) => {
+  const event = await Event.findById(req.params.eventId).select("_id");
 
   if (!event) {
     throw new AppError("Event not found", 404);
   }
 
-  const message = await Message.create({
-    event: eventId,
-    sender: req.user.id,
-    text,
-  });
-
-  const io = req.app.get("io");
-
-io.to(`event:${eventId}`).emit("announcement", message);
-
-  sendResponse(res, 201, {
-    message: "Announcement sent successfully",
-    data: message,
-  });
-});
-
-const getAnnouncements = asyncHandler(async (req, res) => {
-  const messages = await Message.find({
-    event: req.params.eventId,
-  })
-    .populate("sender", "name email")
-    .sort({ createdAt: 1 });
-
-  sendResponse(res, 200, {
-    data: messages,
-  });
-});
-
-const getEventMessages = asyncHandler(async (req, res) => {
   const messages = await Message.find({
     event: req.params.eventId,
   })
@@ -55,7 +24,5 @@ const getEventMessages = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  createAnnouncement,
-  getAnnouncements,
   getEventMessages,
 };

@@ -3,6 +3,9 @@ const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const sendResponse = require("../utils/sendResponse");
 
+const escapeRegex = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const createEvent = asyncHandler(async (req, res) => {
   const {
     title,
@@ -47,25 +50,17 @@ const getAllEvents = asyncHandler(async (req, res) => {
   const filter = {};
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     filter.$or = [
-      {
-        title: {
-          $regex: search,
-          $options: "i",
-        },
-      },
-      {
-        description: {
-          $regex: search,
-          $options: "i",
-        },
-      },
+      { title: { $regex: safeSearch, $options: "i" } },
+      { description: { $regex: safeSearch, $options: "i" } },
     ];
   }
 
   if (city) {
     filter.city = {
-      $regex: city,
+      $regex: escapeRegex(city),
       $options: "i",
     };
   }
@@ -78,35 +73,43 @@ const getAllEvents = asyncHandler(async (req, res) => {
     filter.date = {};
 
     if (startDate) {
-      filter.date.$gte = new Date(startDate);
+      const parsedStartDate = new Date(startDate);
+
+      if (Number.isNaN(parsedStartDate.getTime())) {
+        throw new AppError("Invalid startDate", 400);
+      }
+
+      filter.date.$gte = parsedStartDate;
     }
 
     if (endDate) {
-      filter.date.$lte = new Date(endDate);
+      const parsedEndDate = new Date(endDate);
+
+      if (Number.isNaN(parsedEndDate.getTime())) {
+        throw new AppError("Invalid endDate", 400);
+      }
+
+      filter.date.$lte = parsedEndDate;
     }
   }
 
-  const pageNum = Number(page) || 1;
-  const limitNum = Number(limit) || 10;
+  const pageNum = Math.max(Number.parseInt(page, 10) || 1, 1);
+
+  const limitNum = Math.min(
+    Math.max(Number.parseInt(limit, 10) || 10, 1),
+    100
+  );
+
   const skip = (pageNum - 1) * limitNum;
 
-  const allowedSortFields = ["date", "registrations"];
-
-  const sortField = allowedSortFields.includes(sortBy)
-    ? sortBy
-    : "date";
-
+  // Currently, events can be sorted by date.
   const sortDirection = order === "desc" ? -1 : 1;
-
-  const sort = {
-    [sortField]: sortDirection,
-  };
 
   const [data, total] = await Promise.all([
     Event.find(filter)
       .populate("category")
       .populate("organizer")
-      .sort(sort)
+      .sort({ date: sortDirection })
       .skip(skip)
       .limit(limitNum)
       .lean(),

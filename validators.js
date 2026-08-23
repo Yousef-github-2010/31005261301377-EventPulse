@@ -1,9 +1,5 @@
 const { body } = require("express-validator");
 
-// ==========================
-// Auth
-// ==========================
-
 const registerValidator = [
   body("name")
     .trim()
@@ -12,7 +8,8 @@ const registerValidator = [
 
   body("email")
     .isEmail()
-    .withMessage("Valid email is required"),
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
 
   body("password")
     .isLength({ min: 6 })
@@ -22,14 +19,13 @@ const registerValidator = [
 const loginValidator = [
   body("email")
     .isEmail()
-    .withMessage("Valid email is required"),
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
 
   body("password")
     .notEmpty()
     .withMessage("Password is required"),
 ];
-
-// Events
 
 const createEventValidator = [
   body("title")
@@ -51,23 +47,76 @@ const createEventValidator = [
     .notEmpty()
     .withMessage("City is required"),
 
+  body("venue")
+    .trim()
+    .notEmpty()
+    .withMessage("Venue is required"),
+
   body("capacity")
     .isInt({ min: 1 })
     .withMessage("Capacity must be at least 1"),
 
   body("category")
-    .notEmpty()
-    .withMessage("Category is required"),
+    .isMongoId()
+    .withMessage("Valid category ID is required"),
 ];
 
-const updateEventValidator = createEventValidator;
+const updateEventValidator = [
+  body("title")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Title cannot be empty"),
 
-// Registration
+  body("description")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Description cannot be empty"),
+
+  body("date")
+    .optional()
+    .isISO8601()
+    .withMessage("Valid date is required"),
+
+  body("city")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("City cannot be empty"),
+
+  body("venue")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Venue cannot be empty"),
+
+  body("capacity")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Capacity must be at least 1"),
+
+  body("category")
+    .optional()
+    .isMongoId()
+    .withMessage("Valid category ID is required"),
+];
 
 const registerEventValidator = [
+  body("event")
+    .isMongoId()
+    .withMessage("Valid event ID is required"),
+];
+
+const announcementValidator = [
   body("eventId")
+    .isMongoId()
+    .withMessage("Valid event ID is required"),
+
+  body("text")
+    .trim()
     .notEmpty()
-    .withMessage("Event ID is required"),
+    .withMessage("Announcement text is required"),
 ];
 
 module.exports = {
@@ -76,4 +125,5 @@ module.exports = {
   createEventValidator,
   updateEventValidator,
   registerEventValidator,
+  announcementValidator,
 };

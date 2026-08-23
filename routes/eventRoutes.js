@@ -13,6 +13,12 @@ const {
   requireRole,
 } = require("../middleware/authMiddleware");
 
+const validateRequest = require("../middleware/validateRequest");
+const {
+  createEventValidator,
+  updateEventValidator,
+} = require("../validators");
+
 router.get("/", getAllEvents);
 
 router.get("/:id", getEventById);
@@ -21,6 +27,8 @@ router.post(
   "/",
   requireAuth,
   requireRole("admin"),
+  createEventValidator,
+  validateRequest,
   createEvent
 );
 
@@ -28,6 +36,8 @@ router.patch(
   "/:id",
   requireAuth,
   requireRole("admin"),
+  updateEventValidator,
+  validateRequest,
   updateEvent
 );
 
