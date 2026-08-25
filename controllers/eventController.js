@@ -6,6 +6,14 @@ const sendResponse = require("../utils/sendResponse");
 const escapeRegex = (value) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const allowedSortFields = [
+  "date",
+  "title",
+  "city",
+  "capacity",
+  "createdAt",
+];
+
 const createEvent = asyncHandler(async (req, res) => {
   const {
     title,
@@ -102,14 +110,19 @@ const getAllEvents = asyncHandler(async (req, res) => {
 
   const skip = (pageNum - 1) * limitNum;
 
-  // Currently, events can be sorted by date.
+  const requestedSortField = sortBy || "date";
+
+  const sortField = allowedSortFields.includes(requestedSortField)
+    ? requestedSortField
+    : "date";
+
   const sortDirection = order === "desc" ? -1 : 1;
 
   const [data, total] = await Promise.all([
     Event.find(filter)
       .populate("category")
       .populate("organizer")
-      .sort({ date: sortDirection })
+      .sort({ [sortField]: sortDirection })
       .skip(skip)
       .limit(limitNum)
       .lean(),

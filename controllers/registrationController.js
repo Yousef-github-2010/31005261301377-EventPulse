@@ -35,15 +35,26 @@ const registerForEvent = asyncHandler(async (req, res) => {
     throw new AppError("This event is full", 400);
   }
 
-  const registration = await Registration.create({
-    event: eventId,
-    attendee: userId,
-  });
+  try {
+    const registration = await Registration.create({
+      event: eventId,
+      attendee: userId,
+    });
 
-  sendResponse(res, 201, {
-    message: "Registration created successfully",
-    data: registration,
-  });
+    sendResponse(res, 201, {
+      message: "Registration created successfully",
+      data: registration,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      throw new AppError(
+        "You are already registered for this event",
+        400
+      );
+    }
+
+    throw error;
+  }
 });
 
 const getMyRegistrations = asyncHandler(async (req, res) => {
