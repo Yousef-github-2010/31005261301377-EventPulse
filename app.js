@@ -4,8 +4,6 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const mongoSanitize = require("express-mongo-sanitize");
-const path = require("path");
-const swaggerUiDist = require("swagger-ui-dist");
 
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
@@ -15,7 +13,7 @@ const healthRoutes = require("./routes/healthRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 
-const { swaggerUi, swaggerDocument } = require("./swagger");
+const { swaggerDocument } = require("./swagger");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -38,34 +36,31 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/health", healthRoutes);
 
-app.use(
-  "/api-docs",
-  express.static(swaggerUiDist.getAbsoluteFSPath())
-);
-
-app.get("/api-docs", (req, res) => {
-  res.redirect("/api-docs/");
-});
-
-app.get("/api-docs/", (req, res) => {
+app.get(["/api-docs", "/api-docs/"], (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="UTF-8">
         <title>EventPulse API</title>
-        <link rel="stylesheet" href="/api-docs/swagger-ui.css">
+
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+        >
       </head>
+
       <body>
         <div id="swagger-ui"></div>
 
-        <script src="/api-docs/swagger-ui-bundle.js"></script>
-        <script src="/api-docs/swagger-ui-standalone-preset.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+        <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
 
         <script>
-          window.onload = function() {
+          window.onload = function () {
             window.ui = SwaggerUIBundle({
               spec: ${JSON.stringify(swaggerDocument)},
-              dom_id: '#swagger-ui',
+              dom_id: "#swagger-ui",
               deepLinking: true,
               presets: [
                 SwaggerUIBundle.presets.apis,
