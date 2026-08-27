@@ -89,8 +89,8 @@ EventPulse/
 Clone the repository:
 
 ```bash
-git clone https://github.com/Yousef-github-2010/EventPulse.git
-cd EventPulse
+git clone https://github.com/Yousef-github-2010/31005261301377-EventPulse.git
+cd 31005261301377-EventPulse
 ```
 
 Install dependencies:
