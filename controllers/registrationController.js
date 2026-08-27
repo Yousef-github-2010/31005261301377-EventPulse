@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Registration = require("../models/Registration");
 const Event = require("../models/Event");
 
@@ -9,6 +11,10 @@ const registerForEvent = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const eventId = req.body.event;
 
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    throw new AppError("Invalid event ID", 400);
+  }
+
   const event = await Event.findById(eventId);
 
   if (!event) {
@@ -18,7 +24,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
   const existing = await Registration.findOne({
     event: eventId,
     attendee: userId,
-  });
+  }).select("_id");
 
   if (existing) {
     throw new AppError(
@@ -58,11 +64,11 @@ const registerForEvent = asyncHandler(async (req, res) => {
 });
 
 const getMyRegistrations = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
-
   const registrations = await Registration.find({
-    attendee: userId,
-  }).populate("event");
+    attendee: req.user.id,
+  })
+    .populate("event")
+    .sort({ createdAt: -1 });
 
   sendResponse(res, 200, {
     data: registrations,
@@ -73,7 +79,13 @@ const cancelRegistration = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const registrationId = req.params.id;
 
-  const registration = await Registration.findById(registrationId);
+  if (!mongoose.Types.ObjectId.isValid(registrationId)) {
+    throw new AppError("Invalid registration ID", 400);
+  }
+
+  const registration = await Registration.findById(
+    registrationId
+  );
 
   if (!registration) {
     throw new AppError("Registration not found", 404);

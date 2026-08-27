@@ -7,7 +7,7 @@ const validateRequest = (req, res, next) => {
     return next();
   }
 
-  res.status(422).json({
+  return res.status(422).json({
     success: false,
     errors: errors.array(),
   });

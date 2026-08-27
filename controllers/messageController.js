@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Message = require("../models/Message");
 const Event = require("../models/Event");
 const Registration = require("../models/Registration");
@@ -7,8 +9,12 @@ const AppError = require("../utils/AppError");
 const sendResponse = require("../utils/sendResponse");
 
 const getEventMessages = asyncHandler(async (req, res) => {
-  const eventId = req.params.eventId;
+  const { eventId } = req.params;
   const userId = req.user.id;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    throw new AppError("Invalid event ID", 400);
+  }
 
   const event = await Event.findById(eventId).select("_id");
 
@@ -34,7 +40,8 @@ const getEventMessages = asyncHandler(async (req, res) => {
     event: eventId,
   })
     .populate("sender", "name email")
-    .sort({ createdAt: 1 });
+    .sort({ createdAt: 1 })
+    .lean();
 
   sendResponse(res, 200, {
     data: messages,

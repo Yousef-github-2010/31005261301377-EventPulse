@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Message = require("../models/Message");
 const Event = require("../models/Event");
 
@@ -8,7 +10,11 @@ const sendResponse = require("../utils/sendResponse");
 const createAnnouncement = asyncHandler(async (req, res) => {
   const { eventId, text } = req.body;
 
-  const event = await Event.findById(eventId);
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    throw new AppError("Invalid event ID", 400);
+  }
+
+  const event = await Event.findById(eventId).select("_id");
 
   if (!event) {
     throw new AppError("Event not found", 404);
@@ -37,17 +43,24 @@ const createAnnouncement = asyncHandler(async (req, res) => {
 });
 
 const getEventAnnouncements = asyncHandler(async (req, res) => {
-  const event = await Event.findById(req.params.eventId).select("_id");
+  const { eventId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(eventId)) {
+    throw new AppError("Invalid event ID", 400);
+  }
+
+  const event = await Event.findById(eventId).select("_id");
 
   if (!event) {
     throw new AppError("Event not found", 404);
   }
 
   const messages = await Message.find({
-    event: req.params.eventId,
+    event: eventId,
   })
     .populate("sender", "name email")
-    .sort({ createdAt: 1 });
+    .sort({ createdAt: 1 })
+    .lean();
 
   sendResponse(res, 200, {
     data: messages,
