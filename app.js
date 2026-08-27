@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const mongoSanitize = require("express-mongo-sanitize");
+const path = require("path");
+const swaggerUiDist = require("swagger-ui-dist");
 
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
@@ -38,11 +40,45 @@ app.use("/health", healthRoutes);
 
 app.use(
   "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument, {
-    customCssUrl: "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
-  })
+  express.static(swaggerUiDist.getAbsoluteFSPath())
 );
+
+app.get("/api-docs", (req, res) => {
+  res.redirect("/api-docs/");
+});
+
+app.get("/api-docs/", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>EventPulse API</title>
+        <link rel="stylesheet" href="/api-docs/swagger-ui.css">
+      </head>
+      <body>
+        <div id="swagger-ui"></div>
+
+        <script src="/api-docs/swagger-ui-bundle.js"></script>
+        <script src="/api-docs/swagger-ui-standalone-preset.js"></script>
+
+        <script>
+          window.onload = function() {
+            window.ui = SwaggerUIBundle({
+              spec: ${JSON.stringify(swaggerDocument)},
+              dom_id: '#swagger-ui',
+              deepLinking: true,
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+              ],
+              layout: "StandaloneLayout"
+            });
+          };
+        </script>
+      </body>
+    </html>
+  `);
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({
