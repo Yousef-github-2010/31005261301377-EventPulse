@@ -38,8 +38,10 @@ app.use("/health", healthRoutes);
 
 app.use(
   "/api-docs",
-  swaggerUi.serveFiles(swaggerDocument),
-  swaggerUi.setup(swaggerDocument)
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    customCssUrl: "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css",
+  })
 );
 
 app.get("/", (req, res) => {
