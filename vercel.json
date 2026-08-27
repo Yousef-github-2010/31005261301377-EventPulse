@@ -10,7 +10,7 @@
       "destination": "/api/index"
     },
     {
-      "source": "/api-docs/swagger.json",
+      "source": "/api-docs",
       "destination": "/api/index"
     },
     {

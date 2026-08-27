@@ -36,13 +36,9 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/health", healthRoutes);
 
-app.get("/api-docs/swagger.json", (req, res) => {
-  res.json(swaggerDocument);
-});
-
 app.use(
   "/api-docs",
-  swaggerUi.serve,
+  swaggerUi.serveFiles(swaggerDocument),
   swaggerUi.setup(swaggerDocument)
 );
 
