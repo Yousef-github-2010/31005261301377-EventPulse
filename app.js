@@ -38,7 +38,7 @@ app.use("/health", healthRoutes);
 
 app.use(
   "/api-docs",
-  swaggerUi.serve,
+  swaggerUi.serveFiles(swaggerDocument),
   swaggerUi.setup(swaggerDocument)
 );
 
