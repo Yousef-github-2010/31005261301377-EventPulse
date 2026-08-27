@@ -10,7 +10,7 @@
       "destination": "/api/index"
     },
     {
-      "source": "/api-docs",
+      "source": "/api-docs/(.*)",
       "destination": "/api/index"
     },
     {
