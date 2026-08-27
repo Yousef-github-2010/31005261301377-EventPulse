@@ -14,10 +14,6 @@
       "destination": "/api/index"
     },
     {
-      "source": "/api-docs/(.*)",
-      "destination": "/api/index"
-    },
-    {
       "source": "/",
       "destination": "/api/index"
     }
