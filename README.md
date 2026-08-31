@@ -212,8 +212,7 @@ After login, include the returned token in protected requests:
 
 Example:
 
-    curl http://localhost:3000/api/registrations/my \
-      -H "Authorization: Bearer YOUR_TOKEN"
+    curl http://localhost:3000/api/registrations/my       -H "Authorization: Bearer YOUR_TOKEN"
 
 ## Role-Based Authorization
 
